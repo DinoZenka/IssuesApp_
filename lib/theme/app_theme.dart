@@ -7,12 +7,17 @@ class AppColors {
   static const Color primaryVariant = Color(0xFF3700B3);
   static const Color secondary = Color(0xFF03DAC6);
   static const Color black = Color(0xFF313131);
+  static const Color gray80 = Color(0xFF6F6F6F);
+  static const Color gray60 = Color(0xFFF6F6F6);
+  static const Color gray40 = Color(0xFFEAEAEA);
+  static const Color orange = Color(0xFFB84100);
 
-  static const Color background = Color(0xFF6F6F6F);
-  static const Color surface = Colors.white;
+  static const Color surface = Color(0xFFF6F6F6);
+  static const Color card = Colors.white;
   static const Color error = Color(0xFFFF2929);
   static const Color success = Color(0xFF267B37);
   static const Color success80 = Color(0xFF29AD2C);
+  static const Color border = Color(0xFFD1D5DB);
 
   static const Color onPrimary = Colors.white;
   static const Color onSecondary = black;
@@ -86,6 +91,7 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: AppColors.surface,
+        surfaceContainer: AppColors.card,
         error: AppColors.error,
         onPrimary: AppColors.onPrimary,
         onSecondary: AppColors.onSecondary,
@@ -94,6 +100,7 @@ class AppTheme {
       ),
       fontFamily: 'Outfit',
       textTheme: textTheme,
+      dividerTheme: DividerThemeData(color: AppColors.gray40),
       extensions: [
         MyTextStyles(
           display1: textTheme.displayLarge,
@@ -109,6 +116,17 @@ class AppTheme {
             fontWeight: FontWeight.w300,
             color: AppColors.onSurface,
           ),
+        ),
+        MyColors(
+          green: AppColors.success,
+          green80: AppColors.success80,
+          purple80: AppColors.primary80,
+          purple60: AppColors.primary60,
+          gray80: AppColors.gray80,
+          gray60: AppColors.gray60,
+          gray40: AppColors.gray40,
+          orange: AppColors.orange,
+          border: AppColors.border,
         ),
       ],
     );
@@ -180,6 +198,72 @@ class MyTextStyles extends ThemeExtension<MyTextStyles> {
   }
 }
 
+class MyColors extends ThemeExtension<MyColors> {
+  final Color? green;
+  final Color? green80;
+  final Color? purple80;
+  final Color? purple60;
+  final Color? gray80;
+  final Color? gray60;
+  final Color? gray40;
+  final Color? orange;
+  final Color? border;
+
+  MyColors({
+    this.green,
+    this.green80,
+    this.purple80,
+    this.purple60,
+    this.gray80,
+    this.gray60,
+    this.gray40,
+    this.orange,
+    this.border,
+  });
+
+  @override
+  MyColors copyWith({
+    Color? green,
+    Color? green80,
+    Color? purple80,
+    Color? purple60,
+    Color? gray80,
+    Color? gray60,
+    Color? gray40,
+    Color? orange,
+    Color? border,
+  }) {
+    return MyColors(
+      green: green ?? this.green,
+      green80: green80 ?? this.green80,
+      purple80: purple80 ?? this.purple80,
+      purple60: purple60 ?? this.purple60,
+      gray80: gray80 ?? this.gray80,
+      gray60: gray60 ?? this.gray60,
+      gray40: gray40 ?? this.gray40,
+      orange: orange ?? this.orange,
+      border: border ?? this.border,
+    );
+  }
+
+  @override
+  MyColors lerp(ThemeExtension<MyColors>? other, double t) {
+    if (other is! MyColors) return this;
+    return MyColors(
+      green: Color.lerp(green, other.green, t),
+      green80: Color.lerp(green80, other.green80, t),
+      purple80: Color.lerp(purple80, other.purple80, t),
+      purple60: Color.lerp(purple60, other.purple60, t),
+      gray80: Color.lerp(gray80, other.gray80, t),
+      gray60: Color.lerp(gray60, other.gray60, t),
+      gray40: Color.lerp(gray40, other.gray40, t),
+      orange: Color.lerp(orange, other.orange, t),
+      border: Color.lerp(border, other.border, t),
+    );
+  }
+}
+
 extension AppThemeExtension on BuildContext {
   MyTextStyles get customStyles => Theme.of(this).extension<MyTextStyles>()!;
+  MyColors get customColors => Theme.of(this).extension<MyColors>()!;
 }
