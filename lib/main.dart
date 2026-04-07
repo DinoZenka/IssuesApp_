@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:issues_app/navigation/navigation.dart';
+import 'package:issues_app/theme/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -9,20 +11,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
+      routerConfig: router,
       title: 'Issues App',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      theme: AppTheme.lightTheme,
     );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  final String title;
-  const MyHomePage({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(title);
   }
 }
