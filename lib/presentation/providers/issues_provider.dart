@@ -55,16 +55,13 @@ FutureOr<List<Issue>> filteredIssues(Ref ref) async {
   final issuesAsync = ref.watch(issuesProvider);
   final query = ref.watch(searchQueryProvider).toLowerCase();
 
-  return issuesAsync.when(
-    data: (issues) {
-      if (query.isEmpty) return issues;
-      return issues
-          .where((issue) => issue.title.toLowerCase().contains(query))
-          .toList();
-    },
-    loading: () => const [],
-    error: (e, s) => const [],
-  );
+  final issues = issuesAsync.value ?? [];
+
+  if (query.isEmpty) return issues;
+
+  return issues
+      .where((issue) => issue.title.toLowerCase().contains(query))
+      .toList();
 }
 
 @riverpod
