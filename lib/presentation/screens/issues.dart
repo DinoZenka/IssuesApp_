@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:issues_app/domain/entities/issue.dart';
+import 'package:issues_app/presentation/providers/issues_provider.dart';
 import 'package:issues_app/presentation/widgets/faded_scroll.dart';
 import 'package:issues_app/presentation/widgets/issues_list_item.dart';
 import 'package:issues_app/presentation/widgets/issues_search_field.dart';
@@ -7,14 +10,14 @@ import 'package:issues_app/presentation/widgets/issues_status_control.dart';
 import 'package:issues_app/presentation/widgets/issues_summary_header.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
-class Issues extends StatefulWidget {
+class Issues extends ConsumerStatefulWidget {
   const Issues({super.key});
 
   @override
-  State<Issues> createState() => _IssuesState();
+  ConsumerState<Issues> createState() => _IssuesState();
 }
 
-class _IssuesState extends State<Issues> {
+class _IssuesState extends ConsumerState<Issues> {
   final List<String> _options = ['All', 'Closed', 'Open'];
   String _currentTab = 'All';
 
@@ -25,6 +28,8 @@ class _IssuesState extends State<Issues> {
 
     final theme = Theme.of(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final issuesAsync = ref.watch(issuesProvider);
+    final countsAsync = ref.watch(issuesCountsProvider);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -32,11 +37,18 @@ class _IssuesState extends State<Issues> {
         bottom: false,
         child: Column(
           children: [
-            IssuesSummaryHeader(
-              title: 'Issues',
-              subtitleDate: formattedDate,
-              openCount: 35,
-              closedCount: 60,
+            countsAsync.when(
+              data: (counts) => IssuesSummaryHeader(
+                title: 'Issues',
+                subtitleDate: formattedDate,
+                openCount: counts.open,
+                closedCount: counts.closed,
+              ),
+              loading: () => const SizedBox(
+                height: 180,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (e, s) => Text('Error loading counts: $e'),
             ),
             Expanded(
               child: Container(
@@ -60,6 +72,15 @@ class _IssuesState extends State<Issues> {
                           selected: _currentTab,
                           onSelect: (value) {
                             setState(() => _currentTab = value);
+                            IssueStatus? status;
+                            if (value == 'Closed') {
+                              status = IssueStatus.closed;
+                            } else if (value == 'Open') {
+                              status = IssueStatus.open;
+                            }
+                            ref
+                                .read(issuesProvider.notifier)
+                                .fetchByStatus(status);
                           },
                         ),
                       ],
@@ -68,28 +89,26 @@ class _IssuesState extends State<Issues> {
                     IssuesSearchField(),
                     Expanded(
                       child: FadedScroll(
-                        child: ListView.separated(
-                          itemCount: 20,
-                          padding: EdgeInsets.only(
-                            top: 16,
-                            bottom: bottomInset,
+                        child: issuesAsync.when(
+                          data: (issues) => ListView.separated(
+                            itemCount: issues.length,
+                            padding: EdgeInsets.only(
+                              top: 16,
+                              bottom: bottomInset,
+                            ),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (BuildContext context, int index) {
+                              return IssuesListItem(
+                                key: ValueKey(issues[index].id),
+                                item: issues[index],
+                              );
+                            },
                           ),
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (BuildContext context, int index) {
-                            return IssuesListItem(
-                              key: ValueKey(index),
-                              item: IssueModel(
-                                id: '123',
-                                title: 'Enhance Search Functionality',
-                                description:
-                                    'This task focuses on developing comprehensive API documentation. It should clearly outline the endpoints, request parameters, and response formats to assist developers in integrating with our services.',
-                                priority: IssuePriority.high,
-                                status: IssueStatus.closed,
-                                updatedAt: DateTime.now().toIso8601String(),
-                              ),
-                            );
-                          },
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (error, stack) =>
+                              Center(child: Text('Error: $error')),
                         ),
                       ),
                     ),

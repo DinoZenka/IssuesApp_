@@ -34,7 +34,7 @@ class IssuesSummaryHeader extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            '135',
+            '$totalCount',
             style: context.customStyles.display1,
             textAlign: TextAlign.start,
           ),

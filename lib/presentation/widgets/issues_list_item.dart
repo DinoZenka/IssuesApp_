@@ -1,32 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:issues_app/assets/app_icons.dart';
+import 'package:issues_app/domain/entities/issue.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
-enum IssuePriority { low, medium, high }
-
-enum IssueStatus { open, closed }
-
-class IssueModel {
-  final String id;
-  final String title;
-  final String description;
-  final IssuePriority priority;
-  final IssueStatus status;
-  final String updatedAt;
-
-  const IssueModel({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.priority,
-    required this.status,
-    required this.updatedAt,
-  });
-}
-
 class IssuesListItem extends StatelessWidget {
-  final IssueModel item;
+  final Issue item;
   final VoidCallback? onTap;
 
   const IssuesListItem({super.key, required this.item, this.onTap});
@@ -118,6 +97,17 @@ class IssuesListItem extends StatelessWidget {
             item.description,
             style: context.customStyles.body2,
             maxLines: 2,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            spacing: 8,
+            children: [
+              SvgPicture.asset(AppIcons.clock, width: 20, height: 20),
+              Text(
+                item.updatedAt.toIso8601String(),
+                style: context.customStyles.body2,
+              ),
+            ],
           ),
         ],
       ),
