@@ -31,7 +31,7 @@ class _IssuesState extends ConsumerState<Issues> {
 
     final theme = Theme.of(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final issuesAsync = ref.watch(issuesProvider);
+    final issuesAsync = ref.watch(filteredIssuesProvider);
     final countsAsync = ref.watch(issuesCountsProvider);
 
     return Scaffold(
@@ -81,7 +81,11 @@ class _IssuesState extends ConsumerState<Issues> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    IssuesSearchField(),
+                    IssuesSearchField(
+                      onChanged: (value) {
+                        ref.read(searchQueryProvider.notifier).update(value);
+                      },
+                    ),
                     Expanded(
                       child: FadedScroll(
                         child: issuesAsync.when(

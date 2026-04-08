@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -30,6 +31,41 @@ class IssuesNotifier extends _$IssuesNotifier {
       return ref.read(issueRepositoryProvider).getIssues(status: status);
     });
   }
+}
+
+@riverpod
+class SearchQuery extends _$SearchQuery {
+  Timer? _debounce;
+
+  @override
+  String build() {
+    ref.onDispose(() => _debounce?.cancel());
+    return '';
+  }
+
+  void update(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      state = query;
+    });
+  }
+}
+
+@riverpod
+FutureOr<List<Issue>> filteredIssues(Ref ref) async {
+  final issuesAsync = ref.watch(issuesProvider);
+  final query = ref.watch(searchQueryProvider).toLowerCase();
+
+  return issuesAsync.when(
+    data: (issues) {
+      if (query.isEmpty) return issues;
+      return issues
+          .where((issue) => issue.title.toLowerCase().contains(query))
+          .toList();
+    },
+    loading: () => const [],
+    error: (e, s) => const [],
+  );
 }
 
 @riverpod

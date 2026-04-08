@@ -89,7 +89,7 @@ final class IssueRepositoryProvider
   }
 }
 
-String _$issueRepositoryHash() => r'ba47bb29fcf3bcbf5b2026ac125e9df8249d2b72';
+String _$issueRepositoryHash() => r'2786db189a5600982e97ab815dae8505cbca9fac';
 
 @ProviderFor(IssuesNotifier)
 const issuesProvider = IssuesNotifierProvider._();
@@ -135,6 +135,97 @@ abstract class _$IssuesNotifier extends $AsyncNotifier<List<Issue>> {
     element.handleValue(ref, created);
   }
 }
+
+@ProviderFor(SearchQuery)
+const searchQueryProvider = SearchQueryProvider._();
+
+final class SearchQueryProvider extends $NotifierProvider<SearchQuery, String> {
+  const SearchQueryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'searchQueryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$searchQueryHash();
+
+  @$internal
+  @override
+  SearchQuery create() => SearchQuery();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
+String _$searchQueryHash() => r'1ca1ea226c52264e3fb16ff14ad993ca6bec64a2';
+
+abstract class _$SearchQuery extends $Notifier<String> {
+  String build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<String, String>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String, String>,
+              String,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+@ProviderFor(filteredIssues)
+const filteredIssuesProvider = FilteredIssuesProvider._();
+
+final class FilteredIssuesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Issue>>,
+          List<Issue>,
+          FutureOr<List<Issue>>
+        >
+    with $FutureModifier<List<Issue>>, $FutureProvider<List<Issue>> {
+  const FilteredIssuesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'filteredIssuesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$filteredIssuesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Issue>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Issue>> create(Ref ref) {
+    return filteredIssues(ref);
+  }
+}
+
+String _$filteredIssuesHash() => r'261546bbf9ae6668d3b0d35daebbb72f9da71938';
 
 @ProviderFor(issuesCounts)
 const issuesCountsProvider = IssuesCountsProvider._();
