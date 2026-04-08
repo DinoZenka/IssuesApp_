@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:issues_app/data/repositories/mock_issue_repository.dart';
 import 'package:issues_app/domain/entities/issue.dart';
