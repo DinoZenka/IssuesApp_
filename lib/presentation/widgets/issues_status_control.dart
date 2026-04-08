@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:issues_app/domain/entities/issue.dart';
+import 'package:issues_app/presentation/extensions/issue_display_extenstions.dart';
 import 'package:issues_app/presentation/widgets/segmented_control.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
 class IssuesStatusControl extends StatelessWidget {
-  final List<String> values;
-  final String selected;
-  final ValueChanged<String> onSelect;
+  final List<IssueFilter> values;
+  final IssueFilter selected;
+  final ValueChanged<IssueFilter> onSelect;
   final double height;
 
   const IssuesStatusControl({
@@ -20,7 +22,7 @@ class IssuesStatusControl extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: height,
-      child: SegmentedControl<String>(
+      child: SegmentedControl<IssueFilter>(
         items: values,
         selectedValue: selected,
         onChange: onSelect,
@@ -29,7 +31,7 @@ class IssuesStatusControl extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Center(
               child: Text(
-                item,
+                item.label,
                 style: isSelected
                     ? context.customStyles.body2
                     : context.customStyles.bodyTab,

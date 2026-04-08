@@ -19,3 +19,21 @@ class Issue {
     required this.updatedAt,
   });
 }
+
+sealed class IssueFilter {
+  const IssueFilter();
+}
+
+class AllIssuesFilter extends IssueFilter {
+  const AllIssuesFilter();
+  @override
+  String toString() => 'all';
+}
+
+class StatusFilter extends IssueFilter {
+  final IssueStatus status;
+  const StatusFilter(this.status);
+
+  @override
+  String toString() => status.name;
+}

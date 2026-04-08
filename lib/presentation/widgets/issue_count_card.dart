@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:issues_app/domain/entities/issue.dart';
-import 'package:issues_app/presentation/mappers/issue_display_mapper.dart';
+import 'package:issues_app/presentation/extensions/issue_display_extenstions.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
 class IssueCountCard extends StatelessWidget {
@@ -30,7 +30,7 @@ class IssueCountCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(statusLabel(status), style: context.customStyles.body2),
+            Text(status.label, style: context.customStyles.body2),
             const SizedBox(height: 8),
             Row(
               children: [

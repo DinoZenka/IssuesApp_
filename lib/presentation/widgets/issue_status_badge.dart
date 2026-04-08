@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:issues_app/domain/entities/issue.dart';
-import 'package:issues_app/presentation/mappers/issue_display_mapper.dart';
+import 'package:issues_app/presentation/extensions/issue_display_extenstions.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
 class IssueStatusBadge extends StatelessWidget {
@@ -13,8 +13,8 @@ class IssueStatusBadge extends StatelessWidget {
     return Row(
       spacing: 8,
       children: [
-        SvgPicture.asset(statusIconPath(status), width: 20, height: 20),
-        Text(statusLabel(status), style: context.customStyles.bodyRegular),
+        SvgPicture.asset(status.iconPath, width: 20, height: 20),
+        Text(status.label, style: context.customStyles.bodyRegular),
       ],
     );
   }

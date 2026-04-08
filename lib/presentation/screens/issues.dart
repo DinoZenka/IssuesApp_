@@ -18,8 +18,11 @@ class Issues extends ConsumerStatefulWidget {
 }
 
 class _IssuesState extends ConsumerState<Issues> {
-  final List<String> _options = ['All', 'Closed', 'Open'];
-  String _currentTab = 'All';
+  final List<IssueFilter> _filterOptions = [
+    const AllIssuesFilter(),
+    ...IssueStatus.values.map((s) => StatusFilter(s)),
+  ];
+  IssueFilter _selectedFilter = const AllIssuesFilter();
 
   @override
   Widget build(BuildContext context) {
@@ -68,19 +71,11 @@ class _IssuesState extends ConsumerState<Issues> {
                       children: [
                         Text("Issue", style: context.customStyles.h2),
                         IssuesStatusControl(
-                          values: _options,
-                          selected: _currentTab,
+                          values: _filterOptions,
+                          selected: _selectedFilter,
                           onSelect: (value) {
-                            setState(() => _currentTab = value);
-                            IssueStatus? status;
-                            if (value == 'Closed') {
-                              status = IssueStatus.closed;
-                            } else if (value == 'Open') {
-                              status = IssueStatus.open;
-                            }
-                            ref
-                                .read(issuesProvider.notifier)
-                                .fetchByStatus(status);
+                            setState(() => _selectedFilter = value);
+                            _fetchIssuesByStatus(value);
                           },
                         ),
                       ],
@@ -90,20 +85,25 @@ class _IssuesState extends ConsumerState<Issues> {
                     Expanded(
                       child: FadedScroll(
                         child: issuesAsync.when(
-                          data: (issues) => ListView.separated(
-                            itemCount: issues.length,
-                            padding: EdgeInsets.only(
-                              top: 16,
-                              bottom: bottomInset,
-                            ),
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (BuildContext context, int index) {
-                              return IssuesListItem(
-                                key: ValueKey(issues[index].id),
-                                item: issues[index],
-                              );
+                          data: (issues) => RefreshIndicator.adaptive(
+                            onRefresh: () async {
+                              _fetchIssuesByStatus(_selectedFilter);
                             },
+                            child: ListView.separated(
+                              itemCount: issues.length,
+                              padding: EdgeInsets.only(
+                                top: 16,
+                                bottom: bottomInset,
+                              ),
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (BuildContext context, int index) {
+                                return IssuesListItem(
+                                  key: ValueKey(issues[index].id),
+                                  item: issues[index],
+                                );
+                              },
+                            ),
                           ),
                           loading: () =>
                               const Center(child: CircularProgressIndicator()),
@@ -120,5 +120,14 @@ class _IssuesState extends ConsumerState<Issues> {
         ),
       ),
     );
+  }
+
+  void _fetchIssuesByStatus(IssueFilter filter) {
+    final IssueStatus? status = switch (filter) {
+      AllIssuesFilter() => null,
+      StatusFilter(status: var s) => s,
+    };
+
+    ref.read(issuesProvider.notifier).fetchByStatus(status);
   }
 }
