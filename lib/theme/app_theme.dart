@@ -122,6 +122,7 @@ class AppTheme {
           green80: AppColors.success80,
           purple80: AppColors.primary80,
           purple60: AppColors.primary60,
+          gray: AppColors.black,
           gray80: AppColors.gray80,
           gray60: AppColors.gray60,
           gray40: AppColors.gray40,
@@ -203,6 +204,7 @@ class MyColors extends ThemeExtension<MyColors> {
   final Color? green80;
   final Color? purple80;
   final Color? purple60;
+  final Color? gray;
   final Color? gray80;
   final Color? gray60;
   final Color? gray40;
@@ -214,6 +216,7 @@ class MyColors extends ThemeExtension<MyColors> {
     this.green80,
     this.purple80,
     this.purple60,
+    this.gray,
     this.gray80,
     this.gray60,
     this.gray40,
@@ -227,6 +230,7 @@ class MyColors extends ThemeExtension<MyColors> {
     Color? green80,
     Color? purple80,
     Color? purple60,
+    Color? gray,
     Color? gray80,
     Color? gray60,
     Color? gray40,
@@ -238,6 +242,7 @@ class MyColors extends ThemeExtension<MyColors> {
       green80: green80 ?? this.green80,
       purple80: purple80 ?? this.purple80,
       purple60: purple60 ?? this.purple60,
+      gray: gray ?? this.gray,
       gray80: gray80 ?? this.gray80,
       gray60: gray60 ?? this.gray60,
       gray40: gray40 ?? this.gray40,
@@ -254,6 +259,7 @@ class MyColors extends ThemeExtension<MyColors> {
       green80: Color.lerp(green80, other.green80, t),
       purple80: Color.lerp(purple80, other.purple80, t),
       purple60: Color.lerp(purple60, other.purple60, t),
+      gray: Color.lerp(gray, other.gray, t),
       gray80: Color.lerp(gray80, other.gray80, t),
       gray60: Color.lerp(gray60, other.gray60, t),
       gray40: Color.lerp(gray40, other.gray40, t),

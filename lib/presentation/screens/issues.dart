@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:issues_app/domain/entities/issue.dart';
 import 'package:issues_app/presentation/providers/issues_provider.dart';
@@ -102,8 +103,12 @@ class _IssuesState extends ConsumerState<Issues> {
                               separatorBuilder: (context, index) =>
                                   const SizedBox(height: 12),
                               itemBuilder: (BuildContext context, int index) {
+                                final issueId = issues[index].id;
                                 return IssuesListItem(
-                                  key: ValueKey(issues[index].id),
+                                  key: ValueKey(issueId),
+                                  onTap: () {
+                                    context.go('/details/$issueId');
+                                  },
                                   item: issues[index],
                                 );
                               },

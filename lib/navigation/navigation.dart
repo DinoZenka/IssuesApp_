@@ -12,9 +12,10 @@ final GoRouter router = GoRouter(
       },
       routes: <RouteBase>[
         GoRoute(
-          path: 'details',
+          path: 'details/:id',
           builder: (BuildContext context, GoRouterState state) {
-            return const IssueDetails();
+            final String issueId = state.pathParameters['id']!;
+            return IssueDetails(id: issueId);
           },
         ),
       ],

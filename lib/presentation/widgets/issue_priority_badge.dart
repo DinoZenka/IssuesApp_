@@ -6,15 +6,17 @@ import 'package:issues_app/theme/app_theme.dart';
 
 class IssuePriorityBadge extends StatelessWidget {
   final IssuePriority priority;
-  const IssuePriorityBadge({super.key, required this.priority});
+  final TextStyle? textStyle;
+  const IssuePriorityBadge({super.key, required this.priority, this.textStyle});
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       spacing: 8,
       children: [
         SvgPicture.asset(priority.iconPath, width: 20, height: 20),
-        Text(priority.label, style: context.customStyles.body2),
+        Text(priority.label, style: textStyle ?? context.customStyles.body2),
       ],
     );
   }

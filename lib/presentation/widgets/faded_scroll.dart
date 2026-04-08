@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-const defaultStops = <double>[0, .08, .92, 1];
-
 class FadedScroll extends StatelessWidget {
   final Widget child;
   final List<double>? stops;
@@ -10,7 +8,7 @@ class FadedScroll extends StatelessWidget {
     super.key,
     required this.child,
     this.colors,
-    this.stops = defaultStops,
+    this.stops = const <double>[0, .08, .92, 1],
   });
 
   @override
@@ -29,7 +27,7 @@ class FadedScroll extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: colors ?? defaultColors,
-          stops: [0.0, 0.08, 0.92, 1.0],
+          stops: stops,
         ).createShader(rect);
       },
       blendMode: BlendMode.dstIn,

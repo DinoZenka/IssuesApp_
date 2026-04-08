@@ -6,15 +6,21 @@ import 'package:issues_app/theme/app_theme.dart';
 
 class IssueStatusBadge extends StatelessWidget {
   final IssueStatus status;
-  const IssueStatusBadge({super.key, required this.status});
+  final TextStyle? textStyle;
+
+  const IssueStatusBadge({super.key, required this.status, this.textStyle});
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       spacing: 8,
       children: [
         SvgPicture.asset(status.iconPath, width: 20, height: 20),
-        Text(status.label, style: context.customStyles.bodyRegular),
+        Text(
+          status.label,
+          style: textStyle ?? context.customStyles.bodyRegular,
+        ),
       ],
     );
   }
