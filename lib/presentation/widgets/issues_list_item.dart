@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:issues_app/assets/app_icons.dart';
 import 'package:issues_app/domain/entities/issue.dart';
+import 'package:issues_app/presentation/widgets/issue_priority_badge.dart';
+import 'package:issues_app/presentation/widgets/issue_status_badge.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
 class IssuesListItem extends StatelessWidget {
@@ -9,46 +11,6 @@ class IssuesListItem extends StatelessWidget {
   final VoidCallback? onTap;
 
   const IssuesListItem({super.key, required this.item, this.onTap});
-
-  String statusLabel(IssueStatus status) {
-    switch (status) {
-      case IssueStatus.open:
-        return 'Open';
-      case IssueStatus.closed:
-        return 'Closed';
-    }
-  }
-
-  String statusIconPath(IssueStatus status) {
-    switch (status) {
-      case IssueStatus.open:
-        return AppIcons.statusOpen;
-      case IssueStatus.closed:
-        return AppIcons.statusClosed;
-    }
-  }
-
-  String priorityLabel(IssuePriority priority) {
-    switch (priority) {
-      case IssuePriority.low:
-        return 'Low';
-      case IssuePriority.medium:
-        return 'Medium';
-      case IssuePriority.high:
-        return 'High';
-    }
-  }
-
-  String priorityIconPath(IssuePriority priority) {
-    switch (priority) {
-      case IssuePriority.low:
-        return AppIcons.priorityLow;
-      case IssuePriority.medium:
-        return AppIcons.priorityMedium;
-      case IssuePriority.high:
-        return AppIcons.priorityHight;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,27 +27,10 @@ class IssuesListItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            spacing: 8,
             children: [
-              SvgPicture.asset(
-                statusIconPath(item.status),
-                width: 20,
-                height: 20,
-              ),
-              Text(
-                statusLabel(item.status),
-                style: context.customStyles.bodyRegular,
-              ),
+              IssueStatusBadge(status: item.status),
               const Spacer(),
-              SvgPicture.asset(
-                priorityIconPath(item.priority),
-                width: 20,
-                height: 20,
-              ),
-              Text(
-                priorityLabel(item.priority),
-                style: context.customStyles.body2,
-              ),
+              IssuePriorityBadge(priority: item.priority),
             ],
           ),
           const SizedBox(height: 12),

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:issues_app/domain/entities/issue.dart';
+import 'package:issues_app/presentation/mappers/issue_display_mapper.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
 class IssueCountCard extends StatelessWidget {
   final int count;
-  final String status;
+  final IssueStatus status;
   const IssueCountCard({super.key, required this.count, required this.status});
 
-  Color _getDotColor(String status, BuildContext context) {
+  Color _getDotColor(IssueStatus status, BuildContext context) {
     switch (status) {
-      case 'open':
+      case IssueStatus.open:
         return context.customColors.green80!;
-      default:
+      case IssueStatus.closed:
         return context.customColors.purple80!;
     }
   }
@@ -28,7 +30,7 @@ class IssueCountCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(status, style: context.customStyles.body2),
+            Text(statusLabel(status), style: context.customStyles.body2),
             const SizedBox(height: 8),
             Row(
               children: [

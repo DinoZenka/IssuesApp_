@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:issues_app/domain/entities/issue.dart';
 import 'package:issues_app/presentation/widgets/issue_count_card.dart';
 import 'package:issues_app/presentation/widgets/issues_progress_bar.dart';
 import 'package:issues_app/theme/app_theme.dart';
@@ -44,10 +45,16 @@ class IssuesSummaryHeader extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: IssueCountCard(count: openCount, status: 'open'),
+                child: IssueCountCard(
+                  count: openCount,
+                  status: IssueStatus.open,
+                ),
               ),
               Expanded(
-                child: IssueCountCard(count: closedCount, status: 'closed'),
+                child: IssueCountCard(
+                  count: closedCount,
+                  status: IssueStatus.closed,
+                ),
               ),
             ],
           ),
