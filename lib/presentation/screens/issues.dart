@@ -105,9 +105,7 @@ class _IssuesState extends ConsumerState<Issues> {
                                 return IssuesListItem(
                                   key: ValueKey(issueId),
                                   onTap: () {
-                                    if (!issues[index].isMock) {
-                                      context.go('/details/$issueId');
-                                    }
+                                    context.go('/details/$issueId');
                                   },
                                   item: issues[index],
                                 );
