@@ -1,21 +1,10 @@
 import 'dart:async';
-import 'package:dio/dio.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:issues_app/data/repositories/mock_issue_repository.dart';
+import 'dart:developer';
+import 'package:issues_app/data/providers.dart';
 import 'package:issues_app/domain/entities/issue.dart';
-import 'package:issues_app/domain/repositories/issue_repository.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'issues_provider.g.dart';
-
-@riverpod
-Dio dio(Ref ref) {
-  return Dio();
-}
-
-@riverpod
-IssueRepository issueRepository(Ref ref) {
-  return MockIssueRepository();
-}
 
 final _mockIssues = List.generate(
   8,
@@ -34,17 +23,65 @@ final _mockIssues = List.generate(
 class IssuesNotifier extends _$IssuesNotifier {
   @override
   FutureOr<List<Issue>> build() {
-    _fetchInitial();
+    unawaited(_bootstrap());
     return _mockIssues;
   }
 
-  Future<void> _fetchInitial() async {
-    state = const AsyncLoading<List<Issue>>().copyWithPrevious(
-      AsyncData(_mockIssues),
-    );
-    final issues = await ref.read(issueRepositoryProvider).getIssues();
+  Future<void> _bootstrap() async {
+    final repo = ref.read(issueRepositoryProvider);
+    final snapshot = await repo.getCachedIssues();
 
-    state = AsyncData(issues);
+    if (snapshot.hasCachedIssues && !snapshot.isExpired) {
+      state = AsyncData(snapshot.issues);
+
+      if (snapshot.isStale) {
+        unawaited(_refreshInBackground());
+      }
+      return;
+    }
+
+    state = AsyncData(_mockIssues);
+    await _refreshInForeground();
+  }
+
+  Future<void> refresh() async {
+    final repo = ref.read(issueRepositoryProvider);
+    final snapshot = await repo.getCachedIssues();
+
+    if (!snapshot.hasCachedIssues || snapshot.isExpired) {
+      state = AsyncData(_mockIssues);
+    }
+
+    await _refreshInForeground();
+  }
+
+  Future<void> _refreshInBackground() async {
+    try {
+      final issues = await ref.read(issueRepositoryProvider).refreshIssues();
+      state = AsyncData(issues);
+    } catch (error, stackTrace) {
+      log(
+        'Failed to refresh issues cache in background',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> _refreshInForeground() async {
+    final previous = state.value;
+
+    try {
+      final issues = await ref.read(issueRepositoryProvider).refreshIssues();
+      state = AsyncData(issues);
+    } catch (error, stackTrace) {
+      if (previous != null) {
+        state = AsyncData(previous);
+        return;
+      }
+
+      state = AsyncError(error, stackTrace);
+    }
   }
 
   Future<Issue> getIssue({required String id}) async {
@@ -110,6 +147,10 @@ class IssuesSearchQuery extends _$IssuesSearchQuery {
 List<Issue> filteredIssues(Ref ref) {
   final issuesAsync = ref.watch(issuesProvider);
   final issues = issuesAsync.value ?? [];
+
+  if (issues.any((issue) => issue.isMock)) {
+    return issues;
+  }
 
   final searchQuery = ref.watch(issuesSearchQueryProvider).toLowerCase();
   final statusFilter = ref.watch(issuesStatusFilterProvider);

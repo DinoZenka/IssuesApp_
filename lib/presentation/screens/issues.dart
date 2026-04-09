@@ -74,7 +74,7 @@ class _IssuesState extends ConsumerState<Issues> {
                             selected: _selectedFilter,
                             onSelect: (value) {
                               setState(() => _selectedFilter = value);
-                              _fetchIssuesByStatus(value);
+                              _updateIssuesFilter(value);
                             },
                           ),
                         ],
@@ -90,9 +90,8 @@ class _IssuesState extends ConsumerState<Issues> {
                       Expanded(
                         child: FadedScroll(
                           child: RefreshIndicator.adaptive(
-                            onRefresh: () async {
-                              _fetchIssuesByStatus(_selectedFilter);
-                            },
+                            onRefresh: () =>
+                                ref.read(issuesProvider.notifier).refresh(),
                             child: ListView.separated(
                               itemCount: issues.length,
                               padding: EdgeInsets.only(
@@ -106,16 +105,11 @@ class _IssuesState extends ConsumerState<Issues> {
                                 return IssuesListItem(
                                   key: ValueKey(issueId),
                                   onTap: () {
-                                    context.go('/details/$issueId');
+                                    if (!issues[index].isMock) {
+                                      context.go('/details/$issueId');
+                                    }
                                   },
-                                  item: Issue(
-                                    id: issueId,
-                                    title: issues[index].title,
-                                    description: issues[index].description,
-                                    priority: issues[index].priority,
-                                    status: issues[index].status,
-                                    updatedAt: issues[index].updatedAt,
-                                  ),
+                                  item: issues[index],
                                 );
                               },
                             ),
@@ -133,7 +127,7 @@ class _IssuesState extends ConsumerState<Issues> {
     );
   }
 
-  void _fetchIssuesByStatus(IssueFilter filter) {
+  void _updateIssuesFilter(IssueFilter filter) {
     final IssueStatus? status = switch (filter) {
       AllIssuesFilter() => null,
       StatusFilter(status: var s) => s,

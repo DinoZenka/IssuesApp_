@@ -1,34 +1,82 @@
-import 'package:dio/dio.dart';
-import 'package:issues_app/data/models/issue_dto.dart';
+import 'package:issues_app/data/datasources/local/issue_local_data_source.dart';
+import 'package:issues_app/data/datasources/remote/issue_remote_data_source.dart';
 import 'package:issues_app/domain/entities/issue.dart';
 import 'package:issues_app/domain/repositories/issue_repository.dart';
 
 class IssueRepositoryImpl implements IssueRepository {
-  final Dio _dio;
-  static const String _baseUrl = 'https://api.example.com';
+  final IssueRemoteDataSource _remoteDataSource;
+  final IssueLocalDataSource _localDataSource;
+  final Duration staleTime;
+  final Duration gcTime;
 
-  IssueRepositoryImpl(this._dio);
+  IssueRepositoryImpl(
+    this._remoteDataSource,
+    this._localDataSource, {
+    this.staleTime = const Duration(minutes: 5),
+    this.gcTime = const Duration(minutes: 30),
+  });
 
   @override
   Future<List<Issue>> getIssues({IssueStatus? status}) async {
-    final response = await _dio.get(
-      '$_baseUrl/issues',
-      queryParameters: {if (status != null) 'status': status.name},
-    );
+    final snapshot = await getCachedIssues();
+    if (snapshot.hasCachedIssues) {
+      return snapshot.issues;
+    }
 
-    final List<dynamic> data = response.data;
-    return data.map((json) => IssueDto.fromJson(json).toEntity()).toList();
+    return refreshIssues();
+  }
+
+  @override
+  Future<IssuesCacheSnapshot> getCachedIssues() async {
+    final issues = await _localDataSource.getAllIssues();
+    final lastSyncTime = await _localDataSource.getLastSyncTime();
+
+    if (issues.isEmpty || lastSyncTime == null) {
+      return const IssuesCacheSnapshot(
+        issues: [],
+        isStale: true,
+        isExpired: true,
+      );
+    }
+
+    final age = DateTime.now().difference(lastSyncTime);
+
+    return IssuesCacheSnapshot(
+      issues: issues,
+      isStale: age > staleTime,
+      isExpired: age > gcTime,
+    );
+  }
+
+  @override
+  Future<List<Issue>> refreshIssues() async {
+    final remoteIssues = await _remoteDataSource.fetchIssues();
+    print("REMOTE ISSUES: $remoteIssues");
+    final issues = remoteIssues.map((dto) => dto.toEntity()).toList();
+    print("MAPPED DTO TO ENTITY");
+    await _localDataSource.saveIssues(issues);
+    print("SAVED TO CACHE");
+    return issues;
   }
 
   @override
   Future<Issue> getIssue(String id) async {
-    final response = await _dio.get('$_baseUrl/issues/$id');
-    return IssueDto.fromJson(response.data).toEntity();
+    final localIssue = await _localDataSource.getIssue(id);
+    if (localIssue != null) {
+      return localIssue;
+    }
+
+    final remoteIssue = await _remoteDataSource.getIssue(id);
+    final issue = remoteIssue.toEntity();
+    await _localDataSource.saveIssue(issue);
+    return issue;
   }
 
   @override
   Future<Issue> updateIssue(String id, Map<String, dynamic> data) async {
-    final response = await _dio.put('$_baseUrl/issues/$id', data: data);
-    return IssueDto.fromJson(response.data).toEntity();
+    final remoteIssue = await _remoteDataSource.putIssue(id, data);
+    final issue = remoteIssue.toEntity();
+    await _localDataSource.saveIssue(issue);
+    return issue;
   }
 }
