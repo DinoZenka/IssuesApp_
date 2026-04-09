@@ -17,18 +17,34 @@ IssueRepository issueRepository(Ref ref) {
   return MockIssueRepository();
 }
 
+final _mockIssues = List.generate(
+  8,
+  (index) => Issue(
+    id: index.toString(),
+    title: 'Loading issue title',
+    description: 'Loading issue description',
+    priority: IssuePriority.getRandom(),
+    status: IssueStatus.getRandom(),
+    updatedAt: DateTime.now(),
+    isMock: true,
+  ),
+);
+
 @riverpod
 class IssuesNotifier extends _$IssuesNotifier {
   @override
   FutureOr<List<Issue>> build() {
-    return ref.read(issueRepositoryProvider).getIssues();
+    _fetchInitial();
+    return _mockIssues;
   }
 
-  Future<void> fetchByStatus(IssueStatus? status) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() {
-      return ref.read(issueRepositoryProvider).getIssues(status: status);
-    });
+  Future<void> _fetchInitial() async {
+    state = const AsyncLoading<List<Issue>>().copyWithPrevious(
+      AsyncData(_mockIssues),
+    );
+    final issues = await ref.read(issueRepositoryProvider).getIssues();
+
+    state = AsyncData(issues);
   }
 
   Future<Issue> getIssue({required String id}) async {
@@ -65,7 +81,15 @@ class IssuesNotifier extends _$IssuesNotifier {
 }
 
 @riverpod
-class SearchQuery extends _$SearchQuery {
+class IssuesStatusFilter extends _$IssuesStatusFilter {
+  @override
+  IssueStatus? build() => null; // null means 'All'
+
+  void update(IssueStatus? status) => state = status;
+}
+
+@riverpod
+class IssuesSearchQuery extends _$IssuesSearchQuery {
   Timer? _debounce;
 
   @override
@@ -83,23 +107,27 @@ class SearchQuery extends _$SearchQuery {
 }
 
 @riverpod
-FutureOr<List<Issue>> filteredIssues(Ref ref) async {
+List<Issue> filteredIssues(Ref ref) {
   final issuesAsync = ref.watch(issuesProvider);
-  final query = ref.watch(searchQueryProvider).toLowerCase();
-
   final issues = issuesAsync.value ?? [];
 
-  if (query.isEmpty) return issues;
+  final searchQuery = ref.watch(issuesSearchQueryProvider).toLowerCase();
+  final statusFilter = ref.watch(issuesStatusFilterProvider);
 
-  return issues
-      .where((issue) => issue.title.toLowerCase().contains(query))
-      .toList();
+  return issues.where((issue) {
+    final matchesStatus = statusFilter == null || issue.status == statusFilter;
+    final matchesSearch = issue.title.toLowerCase().contains(searchQuery);
+    return matchesStatus && matchesSearch;
+  }).toList();
 }
 
 @riverpod
-FutureOr<({int open, int closed, int total})> issuesCounts(Ref ref) async {
-  final issues = await ref.watch(issueRepositoryProvider).getIssues();
+({int open, int closed, int total}) issuesCounts(Ref ref) {
+  final issuesAsync = ref.watch(issuesProvider);
+  final issues = issuesAsync.value ?? [];
+
   final open = issues.where((i) => i.status == IssueStatus.open).length;
   final closed = issues.where((i) => i.status == IssueStatus.closed).length;
+
   return (open: open, closed: closed, total: issues.length);
 }

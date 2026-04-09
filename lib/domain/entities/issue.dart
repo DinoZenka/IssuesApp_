@@ -1,6 +1,25 @@
-enum IssuePriority { low, medium, high }
+import 'dart:math';
 
-enum IssueStatus { open, closed }
+enum IssuePriority {
+  low,
+  medium,
+  high;
+
+  static IssuePriority getRandom() {
+    final random = Random();
+    return values[random.nextInt(values.length)];
+  }
+}
+
+enum IssueStatus {
+  open,
+  closed;
+
+  static IssueStatus getRandom() {
+    final random = Random();
+    return values[random.nextInt(values.length)];
+  }
+}
 
 class Issue {
   final String id;
@@ -9,6 +28,7 @@ class Issue {
   final IssuePriority priority;
   final IssueStatus status;
   final DateTime updatedAt;
+  final bool isMock;
 
   const Issue({
     required this.id,
@@ -17,6 +37,7 @@ class Issue {
     required this.priority,
     required this.status,
     required this.updatedAt,
+    this.isMock = false,
   });
 
   Issue copyWith({
@@ -25,6 +46,7 @@ class Issue {
     IssuePriority? priority,
     IssueStatus? status,
     DateTime? updatedAt,
+    bool? isMock,
   }) {
     return Issue(
       id: id,
@@ -33,6 +55,7 @@ class Issue {
       priority: priority ?? this.priority,
       status: status ?? this.status,
       updatedAt: updatedAt ?? this.updatedAt,
+      isMock: isMock ?? this.isMock,
     );
   }
 }

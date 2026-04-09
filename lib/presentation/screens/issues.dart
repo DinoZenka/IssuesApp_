@@ -33,48 +33,39 @@ class _IssuesState extends ConsumerState<Issues> {
 
     final theme = Theme.of(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final issuesAsync = ref.watch(filteredIssuesProvider);
-    final countsAsync = ref.watch(issuesCountsProvider);
-    final showSkeleton = false;
+    final issues = ref.watch(filteredIssuesProvider);
+    final counts = ref.watch(issuesCountsProvider);
+
+    final showSkeleton = issues.any((i) => i.isMock);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            countsAsync.when(
-              data: (counts) => Skeletonizer(
-                enabled: showSkeleton,
-                child: IssuesSummaryHeader(
-                  title: 'Issues',
-                  subtitleDate: formattedDate,
-                  openCount: counts.open,
-                  closedCount: counts.closed,
-                ),
+      body: Skeletonizer(
+        enabled: showSkeleton,
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              IssuesSummaryHeader(
+                title: 'Issues',
+                subtitleDate: formattedDate,
+                openCount: counts.open,
+                closedCount: counts.closed,
               ),
-              loading: () => const SizedBox(
-                height: 180,
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (e, s) => Text('Error loading counts: $e'),
-            ),
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.only(top: 22, left: 16, right: 16),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.only(top: 22, left: 16, right: 16),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
                   ),
-                ),
-                child: Column(
-                  children: [
-                    Skeletonizer(
-                      enabled: showSkeleton,
-                      child: Row(
+                  child: Column(
+                    children: [
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text("Issue", style: context.customStyles.h2),
@@ -88,58 +79,55 @@ class _IssuesState extends ConsumerState<Issues> {
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Skeletonizer(
-                      enabled: showSkeleton,
-                      child: IssuesSearchField(
+                      const SizedBox(height: 16),
+                      IssuesSearchField(
                         onChanged: (value) {
-                          ref.read(searchQueryProvider.notifier).update(value);
+                          ref
+                              .read(issuesSearchQueryProvider.notifier)
+                              .update(value);
                         },
                       ),
-                    ),
-                    Expanded(
-                      child: FadedScroll(
-                        child: issuesAsync.when(
-                          data: (issues) => RefreshIndicator.adaptive(
+                      Expanded(
+                        child: FadedScroll(
+                          child: RefreshIndicator.adaptive(
                             onRefresh: () async {
                               _fetchIssuesByStatus(_selectedFilter);
                             },
-                            child: Skeletonizer(
-                              enabled: showSkeleton,
-                              child: ListView.separated(
-                                itemCount: issues.length,
-                                padding: EdgeInsets.only(
-                                  top: 16,
-                                  bottom: bottomInset,
-                                ),
-                                separatorBuilder: (context, index) =>
-                                    const SizedBox(height: 12),
-                                itemBuilder: (BuildContext context, int index) {
-                                  final issueId = issues[index].id;
-                                  return IssuesListItem(
-                                    key: ValueKey(issueId),
-                                    onTap: () {
-                                      context.go('/details/$issueId');
-                                    },
-                                    item: issues[index],
-                                  );
-                                },
+                            child: ListView.separated(
+                              itemCount: issues.length,
+                              padding: EdgeInsets.only(
+                                top: 16,
+                                bottom: bottomInset,
                               ),
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (BuildContext context, int index) {
+                                final issueId = issues[index].id;
+                                return IssuesListItem(
+                                  key: ValueKey(issueId),
+                                  onTap: () {
+                                    context.go('/details/$issueId');
+                                  },
+                                  item: Issue(
+                                    id: issueId,
+                                    title: issues[index].title,
+                                    description: issues[index].description,
+                                    priority: issues[index].priority,
+                                    status: issues[index].status,
+                                    updatedAt: issues[index].updatedAt,
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                          loading: () =>
-                              const Center(child: CircularProgressIndicator()),
-                          error: (error, stack) =>
-                              Center(child: Text('Error: $error')),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -151,6 +139,6 @@ class _IssuesState extends ConsumerState<Issues> {
       StatusFilter(status: var s) => s,
     };
 
-    ref.read(issuesProvider.notifier).fetchByStatus(status);
+    ref.read(issuesStatusFilterProvider.notifier).update(status);
   }
 }
