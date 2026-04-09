@@ -119,7 +119,7 @@ class MockIssueRepository implements IssueRepository {
 
   @override
   Future<Issue> updateIssue(String id, Map<String, dynamic> data) async {
-    await Future.delayed(const Duration(milliseconds: 1000));
+    await Future.delayed(const Duration(milliseconds: 1500));
     final index = _mockIssues.indexWhere((Issue item) => item.id == id);
     if (index == -1) {
       throw Exception('Issue with id $id not found');
