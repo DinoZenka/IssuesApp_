@@ -12,6 +12,7 @@ import 'package:issues_app/presentation/widgets/faded_scroll.dart';
 import 'package:issues_app/presentation/widgets/issue_priority_badge.dart';
 import 'package:issues_app/presentation/widgets/issue_status_badge.dart';
 import 'package:issues_app/theme/app_theme.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class IssueDetails extends ConsumerStatefulWidget {
   final String id;
@@ -55,6 +56,8 @@ class _IssueDetailsState extends ConsumerState<IssueDetails> {
     final bool isDirty =
         issue != null &&
         (activePriority != issue.priority || activeStatus != issue.status);
+
+    final showSkeleton = false;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -104,24 +107,30 @@ class _IssueDetailsState extends ConsumerState<IssueDetails> {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _DetailsTopCard(
-                              title: issue.title,
-                              lastUpdatedLabel: lastUpdatedLabel,
-                              prioritiesOptions: prioritiesOptions,
-                              activePriority: activePriority,
-                              onPriorityChanged: (newPriority) {
-                                setState(() => activePriority = newPriority);
-                              },
-                              statusOptions: statusOptions,
-                              activeStatus: activeStatus,
-                              onStatusChanged: (newStatus) {
-                                setState(() => activeStatus = newStatus);
-                              },
+                            Skeletonizer(
+                              enabled: showSkeleton,
+                              child: _DetailsTopCard(
+                                title: issue.title,
+                                lastUpdatedLabel: lastUpdatedLabel,
+                                prioritiesOptions: prioritiesOptions,
+                                activePriority: activePriority,
+                                onPriorityChanged: (newPriority) {
+                                  setState(() => activePriority = newPriority);
+                                },
+                                statusOptions: statusOptions,
+                                activeStatus: activeStatus,
+                                onStatusChanged: (newStatus) {
+                                  setState(() => activeStatus = newStatus);
+                                },
+                              ),
                             ),
-                            _DescriptionSection(
-                              bottomInset: insets.bottom,
-                              title: 'Description',
-                              description: issue.description,
+                            Skeletonizer(
+                              enabled: showSkeleton,
+                              child: _DescriptionSection(
+                                bottomInset: insets.bottom,
+                                title: 'Description',
+                                description: issue.description,
+                              ),
                             ),
                           ],
                         );

@@ -10,6 +10,7 @@ import 'package:issues_app/presentation/widgets/issues_search_field.dart';
 import 'package:issues_app/presentation/widgets/issues_status_control.dart';
 import 'package:issues_app/presentation/widgets/issues_summary_header.dart';
 import 'package:issues_app/theme/app_theme.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class Issues extends ConsumerStatefulWidget {
   const Issues({super.key});
@@ -34,6 +35,7 @@ class _IssuesState extends ConsumerState<Issues> {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final issuesAsync = ref.watch(filteredIssuesProvider);
     final countsAsync = ref.watch(issuesCountsProvider);
+    final showSkeleton = false;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -42,11 +44,14 @@ class _IssuesState extends ConsumerState<Issues> {
         child: Column(
           children: [
             countsAsync.when(
-              data: (counts) => IssuesSummaryHeader(
-                title: 'Issues',
-                subtitleDate: formattedDate,
-                openCount: counts.open,
-                closedCount: counts.closed,
+              data: (counts) => Skeletonizer(
+                enabled: showSkeleton,
+                child: IssuesSummaryHeader(
+                  title: 'Issues',
+                  subtitleDate: formattedDate,
+                  openCount: counts.open,
+                  closedCount: counts.closed,
+                ),
               ),
               loading: () => const SizedBox(
                 height: 180,
@@ -67,25 +72,31 @@ class _IssuesState extends ConsumerState<Issues> {
                 ),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Issue", style: context.customStyles.h2),
-                        IssuesStatusControl(
-                          values: _filterOptions,
-                          selected: _selectedFilter,
-                          onSelect: (value) {
-                            setState(() => _selectedFilter = value);
-                            _fetchIssuesByStatus(value);
-                          },
-                        ),
-                      ],
+                    Skeletonizer(
+                      enabled: showSkeleton,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Issue", style: context.customStyles.h2),
+                          IssuesStatusControl(
+                            values: _filterOptions,
+                            selected: _selectedFilter,
+                            onSelect: (value) {
+                              setState(() => _selectedFilter = value);
+                              _fetchIssuesByStatus(value);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    IssuesSearchField(
-                      onChanged: (value) {
-                        ref.read(searchQueryProvider.notifier).update(value);
-                      },
+                    Skeletonizer(
+                      enabled: showSkeleton,
+                      child: IssuesSearchField(
+                        onChanged: (value) {
+                          ref.read(searchQueryProvider.notifier).update(value);
+                        },
+                      ),
                     ),
                     Expanded(
                       child: FadedScroll(
@@ -94,24 +105,27 @@ class _IssuesState extends ConsumerState<Issues> {
                             onRefresh: () async {
                               _fetchIssuesByStatus(_selectedFilter);
                             },
-                            child: ListView.separated(
-                              itemCount: issues.length,
-                              padding: EdgeInsets.only(
-                                top: 16,
-                                bottom: bottomInset,
+                            child: Skeletonizer(
+                              enabled: showSkeleton,
+                              child: ListView.separated(
+                                itemCount: issues.length,
+                                padding: EdgeInsets.only(
+                                  top: 16,
+                                  bottom: bottomInset,
+                                ),
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (BuildContext context, int index) {
+                                  final issueId = issues[index].id;
+                                  return IssuesListItem(
+                                    key: ValueKey(issueId),
+                                    onTap: () {
+                                      context.go('/details/$issueId');
+                                    },
+                                    item: issues[index],
+                                  );
+                                },
                               ),
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: 12),
-                              itemBuilder: (BuildContext context, int index) {
-                                final issueId = issues[index].id;
-                                return IssuesListItem(
-                                  key: ValueKey(issueId),
-                                  onTap: () {
-                                    context.go('/details/$issueId');
-                                  },
-                                  item: issues[index],
-                                );
-                              },
                             ),
                           ),
                           loading: () =>
