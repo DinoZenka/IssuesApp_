@@ -11,10 +11,11 @@ class IssueRepositoryImpl implements IssueRepository {
 
   @override
   Future<List<Issue>> getIssues({IssueStatus? status}) async {
-    final response = await _dio.get('$_baseUrl/issues', queryParameters: {
-      if (status != null) 'status': status.name,
-    });
-    
+    final response = await _dio.get(
+      '$_baseUrl/issues',
+      queryParameters: {if (status != null) 'status': status.name},
+    );
+
     final List<dynamic> data = response.data;
     return data.map((json) => IssueDto.fromJson(json).toEntity()).toList();
   }
@@ -22,6 +23,12 @@ class IssueRepositoryImpl implements IssueRepository {
   @override
   Future<Issue> getIssue(String id) async {
     final response = await _dio.get('$_baseUrl/issues/$id');
+    return IssueDto.fromJson(response.data).toEntity();
+  }
+
+  @override
+  Future<Issue> updateIssue(String id, Map<String, dynamic> data) async {
+    final response = await _dio.put('$_baseUrl/issues/$id', data: data);
     return IssueDto.fromJson(response.data).toEntity();
   }
 }

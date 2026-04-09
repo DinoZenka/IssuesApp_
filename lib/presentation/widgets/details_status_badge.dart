@@ -82,25 +82,29 @@ class OfflineStatusBadge extends StatelessWidget {
 }
 
 class DetailsStatusBadge extends StatelessWidget {
-  const DetailsStatusBadge({super.key});
+  final bool isUpdating;
+  const DetailsStatusBadge({super.key, this.isUpdating = false});
 
   @override
   Widget build(BuildContext context) {
-    return const _ReachabilityDrivenStatusBadge();
+    return _ReachabilityDrivenStatusBadge(isUpdating: isUpdating);
   }
 }
 
 class _ReachabilityDrivenStatusBadge extends ConsumerWidget {
-  const _ReachabilityDrivenStatusBadge();
+  final bool isUpdating;
+  const _ReachabilityDrivenStatusBadge({this.isUpdating = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasInternet = ref.watch(hasInternetProvider);
+    final hasInternet = ref
+        .watch(hasInternetProvider)
+        .maybeWhen(data: (data) => data, orElse: () => true);
 
-    return hasInternet.when(
-      data: (ok) => ok ? const SyncStatusBadge() : const OfflineStatusBadge(),
-      loading: () => const SyncStatusBadge(),
-      error: (_, _) => const SyncStatusBadge(),
-    );
+    if (isUpdating) {
+      return const PendingStatusBadge();
+    }
+
+    return hasInternet ? const SyncStatusBadge() : const OfflineStatusBadge();
   }
 }

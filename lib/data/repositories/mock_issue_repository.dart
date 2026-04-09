@@ -1,7 +1,7 @@
 import 'package:issues_app/domain/entities/issue.dart';
 import 'package:issues_app/domain/repositories/issue_repository.dart';
 
-final List<Issue> _mockIssues = [
+var _mockIssues = <Issue>[
   Issue(
     id: '1',
     title: 'Enhance Search Functionality',
@@ -115,5 +115,26 @@ class MockIssueRepository implements IssueRepository {
   Future<Issue> getIssue(String id) async {
     await Future.delayed(const Duration(milliseconds: 1500));
     return _mockIssues.firstWhere((issue) => issue.id == id);
+  }
+
+  @override
+  Future<Issue> updateIssue(String id, Map<String, dynamic> data) async {
+    await Future.delayed(const Duration(milliseconds: 1000));
+    final index = _mockIssues.indexWhere((Issue item) => item.id == id);
+    if (index == -1) {
+      throw Exception('Issue with id $id not found');
+    }
+
+    final existingIssue = _mockIssues[index];
+
+    final updatedIssue = existingIssue.copyWith(
+      priority: data['priority'],
+      status: data['status'],
+      updatedAt: DateTime.now(),
+    );
+
+    _mockIssues[index] = updatedIssue;
+
+    return updatedIssue;
   }
 }

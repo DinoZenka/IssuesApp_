@@ -21,7 +21,8 @@ class IssueDto {
     required this.updatedAt,
   });
 
-  factory IssueDto.fromJson(Map<String, dynamic> json) => _$IssueDtoFromJson(json);
+  factory IssueDto.fromJson(Map<String, dynamic> json) =>
+      _$IssueDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$IssueDtoToJson(this);
 

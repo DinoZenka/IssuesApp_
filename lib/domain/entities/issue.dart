@@ -18,6 +18,23 @@ class Issue {
     required this.status,
     required this.updatedAt,
   });
+
+  Issue copyWith({
+    String? title,
+    String? description,
+    IssuePriority? priority,
+    IssueStatus? status,
+    DateTime? updatedAt,
+  }) {
+    return Issue(
+      id: id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      priority: priority ?? this.priority,
+      status: status ?? this.status,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 sealed class IssueFilter {

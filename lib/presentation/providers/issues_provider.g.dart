@@ -115,7 +115,7 @@ final class IssuesNotifierProvider
   IssuesNotifier create() => IssuesNotifier();
 }
 
-String _$issuesNotifierHash() => r'f2061973d74c7c97410cf1921ef1f2c038ef3c92';
+String _$issuesNotifierHash() => r'48010ce7ee3b4e973793e219de2fba3812819c18';
 
 abstract class _$IssuesNotifier extends $AsyncNotifier<List<Issue>> {
   FutureOr<List<Issue>> build();
@@ -225,7 +225,7 @@ final class FilteredIssuesProvider
   }
 }
 
-String _$filteredIssuesHash() => r'261546bbf9ae6668d3b0d35daebbb72f9da71938';
+String _$filteredIssuesHash() => r'1d465c2898b382bce4221dc8bb5425d54178097c';
 
 @ProviderFor(issuesCounts)
 const issuesCountsProvider = IssuesCountsProvider._();

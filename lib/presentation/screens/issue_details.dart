@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:issues_app/assets/app_icons.dart';
 import 'package:issues_app/domain/entities/issue.dart';
+import 'package:issues_app/presentation/providers/issues_provider.dart';
 import 'package:issues_app/presentation/widgets/details_segmented_control.dart';
 import 'package:issues_app/presentation/widgets/details_status_badge.dart';
 import 'package:issues_app/presentation/widgets/faded_scroll.dart';
@@ -9,15 +13,15 @@ import 'package:issues_app/presentation/widgets/issue_priority_badge.dart';
 import 'package:issues_app/presentation/widgets/issue_status_badge.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
-class IssueDetails extends StatefulWidget {
+class IssueDetails extends ConsumerStatefulWidget {
   final String id;
   const IssueDetails({super.key, required this.id});
 
   @override
-  State<IssueDetails> createState() => _IssueDetailsState();
+  ConsumerState<IssueDetails> createState() => _IssueDetailsState();
 }
 
-class _IssueDetailsState extends State<IssueDetails> {
+class _IssueDetailsState extends ConsumerState<IssueDetails> {
   final prioritiesOptions = <IssuePriority>[
     IssuePriority.low,
     IssuePriority.medium,
@@ -28,18 +32,41 @@ class _IssueDetailsState extends State<IssueDetails> {
   final statusOptions = <IssueStatus>[IssueStatus.open, IssueStatus.closed];
   IssueStatus activeStatus = IssueStatus.open;
 
+  String? _initializedFromIssueId;
+  bool _isSaving = false;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final insets = MediaQuery.paddingOf(context);
+    final issueAsync = ref.watch(issuesProvider);
+
+    final Issue? issue = issueAsync.maybeWhen(
+      data: (issues) => _firstWhereOrNull(issues, (i) => i.id == widget.id),
+      orElse: () => null,
+    );
+
+    if (issue != null && _initializedFromIssueId != issue.id) {
+      _initializedFromIssueId = issue.id;
+      activePriority = issue.priority;
+      activeStatus = issue.status;
+    }
+
+    final bool isDirty =
+        issue != null &&
+        (activePriority != issue.priority || activeStatus != issue.status);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      bottomNavigationBar: _SaveBar(onPressed: () {}),
+      bottomNavigationBar: _SaveBar(
+        onPressed: _handleSaveChanges,
+        isLoading: _isSaving,
+        disabled: !isDirty,
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _DetailsHeader(topInset: insets.top),
+          _DetailsHeader(topInset: insets.top, isUpdating: _isSaving),
           Expanded(
             child: FadedScroll(
               stops: [0, 0, 0.95, 1],
@@ -47,24 +74,58 @@ class _IssueDetailsState extends State<IssueDetails> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _DetailsTopCard(
-                      title: 'Title',
-                      lastUpdatedLabel: '11:45 AM, 22 Jan 2026',
-                      prioritiesOptions: prioritiesOptions,
-                      activePriority: activePriority,
-                      onPriorityChanged: (newPriority) {
-                        setState(() => activePriority = newPriority);
+                    issueAsync.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (err, _) => Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          'Failed to load issue: $err',
+                          style: context.customStyles.bodyRegular,
+                        ),
+                      ),
+                      data: (issues) {
+                        if (issue == null) {
+                          return Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              'Issue not found',
+                              style: context.customStyles.bodyRegular,
+                            ),
+                          );
+                        }
+
+                        final lastUpdatedLabel = DateFormat(
+                          'h:mm a, d MMM y',
+                        ).format(issue.updatedAt);
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _DetailsTopCard(
+                              title: issue.title,
+                              lastUpdatedLabel: lastUpdatedLabel,
+                              prioritiesOptions: prioritiesOptions,
+                              activePriority: activePriority,
+                              onPriorityChanged: (newPriority) {
+                                setState(() => activePriority = newPriority);
+                              },
+                              statusOptions: statusOptions,
+                              activeStatus: activeStatus,
+                              onStatusChanged: (newStatus) {
+                                setState(() => activeStatus = newStatus);
+                              },
+                            ),
+                            _DescriptionSection(
+                              bottomInset: insets.bottom,
+                              title: 'Description',
+                              description: issue.description,
+                            ),
+                          ],
+                        );
                       },
-                      statusOptions: statusOptions,
-                      activeStatus: activeStatus,
-                      onStatusChanged: (newStatus) {
-                        setState(() => activeStatus = newStatus);
-                      },
-                    ),
-                    _DescriptionSection(
-                      bottomInset: insets.bottom,
-                      title: 'Description',
-                      description: 'Desctiption body',
                     ),
                   ],
                 ),
@@ -75,34 +136,75 @@ class _IssueDetailsState extends State<IssueDetails> {
       ),
     );
   }
+
+  Future<void> _handleSaveChanges() async {
+    setState(() => _isSaving = true);
+    try {
+      await ref
+          .read(issuesProvider.notifier)
+          .updateIssue(
+            id: widget.id,
+            priority: activePriority,
+            status: activeStatus,
+          );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+}
+
+T? _firstWhereOrNull<T>(Iterable<T> items, bool Function(T) test) {
+  for (final item in items) {
+    if (test(item)) return item;
+  }
+  return null;
 }
 
 class _SaveBar extends StatelessWidget {
   final VoidCallback? onPressed;
-  const _SaveBar({required this.onPressed});
+  final bool isLoading;
+  final bool disabled;
+
+  const _SaveBar({
+    required this.onPressed,
+    this.isLoading = false,
+    this.disabled = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final isEnabled = !isLoading && !disabled;
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
         child: ElevatedButton(
-          onPressed: onPressed,
+          onPressed: isEnabled ? onPressed : null,
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
             backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          child: Text(
-            'Save',
-            style: context.customStyles.subtitle2!.copyWith(
-              color: theme.colorScheme.onPrimary,
-            ),
-          ),
+          child: isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(
+                  'Save',
+                  style: context.customStyles.subtitle2?.copyWith(
+                    color: theme.colorScheme.surfaceContainer,
+                  ),
+                ),
         ),
       ),
     );
@@ -111,32 +213,34 @@ class _SaveBar extends StatelessWidget {
 
 class _DetailsHeader extends StatelessWidget {
   final double topInset;
-  const _DetailsHeader({required this.topInset});
+  final bool isUpdating;
+  const _DetailsHeader({required this.topInset, this.isUpdating = false});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Container(
-      padding: EdgeInsets.only(
-        top: topInset + 24,
-        left: 16,
-        right: 16,
-        bottom: 12,
-      ),
+      padding: EdgeInsets.only(top: topInset + 12, left: 16, right: 16),
       color: theme.colorScheme.surfaceContainer,
       child: Row(
-        spacing: 8,
         children: [
-          SvgPicture.asset(AppIcons.arrowLeft, width: 20, height: 20),
-          Text(
-            'Go Back',
-            style: context.customStyles.bodyRegular!.copyWith(
-              color: context.customColors.purple60,
+          TextButton.icon(
+            icon: SvgPicture.asset(AppIcons.arrowLeft, width: 20, height: 20),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              }
+            },
+            label: Text(
+              'Go Back',
+              style: context.customStyles.bodyRegular!.copyWith(
+                color: context.customColors.purple60,
+              ),
             ),
           ),
           const Spacer(),
-          const DetailsStatusBadge(),
+          DetailsStatusBadge(isUpdating: isUpdating),
         ],
       ),
     );

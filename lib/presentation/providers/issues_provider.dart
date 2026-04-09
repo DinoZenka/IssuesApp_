@@ -30,6 +30,38 @@ class IssuesNotifier extends _$IssuesNotifier {
       return ref.read(issueRepositoryProvider).getIssues(status: status);
     });
   }
+
+  Future<Issue> getIssue({required String id}) async {
+    final repo = ref.read(issueRepositoryProvider);
+    final response = await repo.getIssue(id);
+    _updateLocalIssue(response);
+    return response;
+  }
+
+  Future<Issue> updateIssue({
+    required String id,
+    IssuePriority? priority,
+    IssueStatus? status,
+  }) async {
+    final repo = ref.read(issueRepositoryProvider);
+
+    final data = <String, dynamic>{'priority': priority, 'status': status}
+      ..removeWhere((_, value) => value == null);
+
+    final updated = await repo.updateIssue(id, data);
+    _updateLocalIssue(updated);
+
+    return updated;
+  }
+
+  void _updateLocalIssue(Issue updated) {
+    state = state.whenData(
+      (issues) => [
+        for (final issue in issues)
+          if (issue.id == updated.id) updated else issue,
+      ],
+    );
+  }
 }
 
 @riverpod
