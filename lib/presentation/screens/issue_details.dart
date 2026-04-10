@@ -62,7 +62,9 @@ class _IssueDetailsState extends ConsumerState<IssueDetails> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       bottomNavigationBar: _SaveBar(
-        onPressed: _handleSaveChanges,
+        onPressed: () {
+          _handleSaveChanges(issue);
+        },
         isLoading: _isSaving,
         disabled: !isDirty,
       ),
@@ -146,7 +148,7 @@ class _IssueDetailsState extends ConsumerState<IssueDetails> {
     );
   }
 
-  Future<void> _handleSaveChanges() async {
+  Future<void> _handleSaveChanges(Issue? issue) async {
     setState(() => _isSaving = true);
     try {
       await ref
@@ -156,6 +158,11 @@ class _IssueDetailsState extends ConsumerState<IssueDetails> {
             priority: activePriority,
             status: activeStatus,
           );
+    } catch (e) {
+      if (issue != null) {
+        activePriority = issue.priority;
+        activeStatus = issue.status;
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

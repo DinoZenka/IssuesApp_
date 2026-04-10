@@ -21,6 +21,7 @@ class IssuesSummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final totalLabel = totalCount == 0 ? 'N/A' : totalCount;
     return Padding(
       padding: const EdgeInsets.only(top: 22, left: 16, right: 16),
       child: Column(
@@ -35,7 +36,7 @@ class IssuesSummaryHeader extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            '$totalCount',
+            '$totalLabel',
             style: context.customStyles.display1,
             textAlign: TextAlign.start,
           ),

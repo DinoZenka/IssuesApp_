@@ -17,7 +17,22 @@ class IssueRepositoryImpl implements IssueRepository {
   });
 
   @override
-  Future<List<Issue>> getIssues({IssueStatus? status}) async {
+  Future<List<Issue>> getBootstrapIssues() async {
+    final snapshot = await getCachedIssues();
+
+    if (snapshot.hasCachedIssues && !snapshot.isExpired) {
+      return snapshot.issues;
+    }
+
+    try {
+      return await refreshIssues();
+    } catch (_) {
+      return <Issue>[];
+    }
+  }
+
+  @override
+  Future<List<Issue>> getIssues() async {
     final snapshot = await getCachedIssues();
     if (snapshot.hasCachedIssues) {
       return snapshot.issues;
@@ -51,11 +66,8 @@ class IssueRepositoryImpl implements IssueRepository {
   @override
   Future<List<Issue>> refreshIssues() async {
     final remoteIssues = await _remoteDataSource.fetchIssues();
-    print("REMOTE ISSUES: $remoteIssues");
     final issues = remoteIssues.map((dto) => dto.toEntity()).toList();
-    print("MAPPED DTO TO ENTITY");
     await _localDataSource.saveIssues(issues);
-    print("SAVED TO CACHE");
     return issues;
   }
 
@@ -74,7 +86,7 @@ class IssueRepositoryImpl implements IssueRepository {
 
   @override
   Future<Issue> updateIssue(String id, Map<String, dynamic> data) async {
-    final remoteIssue = await _remoteDataSource.putIssue(id, data);
+    final remoteIssue = await _remoteDataSource.patchIssue(id, data);
     final issue = remoteIssue.toEntity();
     await _localDataSource.saveIssue(issue);
     return issue;

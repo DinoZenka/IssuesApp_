@@ -15,7 +15,8 @@ class IssuesCacheSnapshot {
 }
 
 abstract interface class IssueRepository {
-  Future<List<Issue>> getIssues({IssueStatus? status});
+  Future<List<Issue>> getBootstrapIssues();
+  Future<List<Issue>> getIssues();
   Future<IssuesCacheSnapshot> getCachedIssues();
   Future<List<Issue>> refreshIssues();
   Future<Issue> getIssue(String id);

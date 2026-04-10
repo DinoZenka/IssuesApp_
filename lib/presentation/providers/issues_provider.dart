@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:issues_app/data/providers.dart';
 import 'package:issues_app/domain/entities/issue.dart';
+import 'package:issues_app/presentation/providers/app_snackbar_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'issues_provider.g.dart';
 
-final _mockIssues = List.generate(
+// data needed to display skeleton
+final _skeletonIssues = List.generate(
   8,
   (index) => Issue(
     id: index.toString(),
@@ -24,7 +26,7 @@ class IssuesNotifier extends _$IssuesNotifier {
   @override
   FutureOr<List<Issue>> build() {
     unawaited(_bootstrap());
-    return _mockIssues;
+    return _skeletonIssues;
   }
 
   Future<void> _bootstrap() async {
@@ -40,19 +42,21 @@ class IssuesNotifier extends _$IssuesNotifier {
       return;
     }
 
-    state = AsyncData(_mockIssues);
-    await _refreshInForeground();
+    state = AsyncData(_skeletonIssues);
+    final issues = await repo.getBootstrapIssues();
+    state = AsyncData(issues);
   }
 
   Future<void> refresh() async {
     final repo = ref.read(issueRepositoryProvider);
     final snapshot = await repo.getCachedIssues();
+    final fallbackIssues = snapshot.hasCachedIssues ? snapshot.issues : <Issue>[];
 
     if (!snapshot.hasCachedIssues || snapshot.isExpired) {
-      state = AsyncData(_mockIssues);
+      state = AsyncData(_skeletonIssues);
     }
 
-    await _refreshInForeground();
+    await _refreshInForeground(fallbackIssues: fallbackIssues);
   }
 
   Future<void> _refreshInBackground() async {
@@ -68,15 +72,18 @@ class IssuesNotifier extends _$IssuesNotifier {
     }
   }
 
-  Future<void> _refreshInForeground() async {
+  Future<void> _refreshInForeground({List<Issue>? fallbackIssues}) async {
     final previous = state.value;
+    final resolvedFallback = fallbackIssues ?? previous;
 
     try {
       final issues = await ref.read(issueRepositoryProvider).refreshIssues();
       state = AsyncData(issues);
     } catch (error, stackTrace) {
-      if (previous != null) {
-        state = AsyncData(previous);
+      _showRequestError(error);
+
+      if (resolvedFallback != null) {
+        state = AsyncData(resolvedFallback);
         return;
       }
 
@@ -96,15 +103,44 @@ class IssuesNotifier extends _$IssuesNotifier {
     IssuePriority? priority,
     IssueStatus? status,
   }) async {
-    final repo = ref.read(issueRepositoryProvider);
+    final previousState = state.value ?? [];
 
-    final data = <String, dynamic>{'priority': priority, 'status': status}
-      ..removeWhere((_, value) => value == null);
+    final oldIssue = previousState.firstWhere((i) => i.id == id);
+    final optimisticIssue = oldIssue.copyWith(
+      priority: priority ?? oldIssue.priority,
+      status: status ?? oldIssue.status,
+      updatedAt: DateTime.now(),
+    );
 
-    final updated = await repo.updateIssue(id, data);
-    _updateLocalIssue(updated);
+    _updateLocalIssue(optimisticIssue);
 
-    return updated;
+    try {
+      final repo = ref.read(issueRepositoryProvider);
+
+      final data = <String, dynamic>{
+        if (priority != null) 'priority': priority.name,
+        if (status != null) 'status': status.name,
+      };
+
+      final updated = await repo.updateIssue(id, data);
+      _updateLocalIssue(updated);
+      return updated;
+    } catch (e, stackTrace) {
+      log(
+        'Failed to update issue, rolling back',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      state = AsyncData(previousState);
+      _showRequestError(e);
+      rethrow;
+    }
+  }
+
+  void _showRequestError(Object error) {
+    ref
+        .read(appSnackbarProvider.notifier)
+        .showMessage('Request failed: $error');
   }
 
   void _updateLocalIssue(Issue updated) {
