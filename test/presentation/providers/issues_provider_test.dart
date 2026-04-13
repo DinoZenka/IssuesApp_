@@ -170,9 +170,9 @@ void main() {
           isExpired: false,
         ),
       );
-      when(() => mockRepository.refreshIssues()).thenAnswer(
-        (_) async => newIssues,
-      );
+      when(
+        () => mockRepository.refreshIssues(),
+      ).thenAnswer((_) async => newIssues);
 
       await container.read(issuesProvider.notifier).refresh();
 
@@ -207,9 +207,9 @@ void main() {
       final issueToUpdate = tIssues[0];
       final updatedIssue = issueToUpdate.copyWith(status: IssueStatus.closed);
 
-      when(() => mockRepository.updateIssue(any(), any())).thenAnswer(
-        (_) async => updatedIssue,
-      );
+      when(
+        () => mockRepository.updateIssue(any(), any()),
+      ).thenAnswer((_) async => updatedIssue);
 
       final notifier = container.read(issuesProvider.notifier);
       final result = await notifier.updateIssue(
@@ -227,59 +227,61 @@ void main() {
       );
     });
 
-    test('updateIssue: does optimistic update and rollback on failure',
-        () async {
-      final container = createContainer(initialIssues: tIssues);
-      final issueToUpdate = tIssues[0];
+    test(
+      'updateIssue: does optimistic update and rollback on failure',
+      () async {
+        final container = createContainer(initialIssues: tIssues);
+        final issueToUpdate = tIssues[0];
 
-      when(() => mockRepository.updateIssue(any(), any())).thenAnswer((
-        _,
-      ) async {
-        await Future.delayed(const Duration(milliseconds: 100));
-        throw Exception('Update failed');
-      });
-      when(() => mockSnackbar.showMessage(any())).thenReturn(null);
+        when(() => mockRepository.updateIssue(any(), any())).thenAnswer((
+          _,
+        ) async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          throw Exception('Update failed');
+        });
+        when(() => mockSnackbar.showMessage(any())).thenReturn(null);
 
-      final notifier = container.read(issuesProvider.notifier);
-      final future = notifier.updateIssue(
-        id: issueToUpdate.id,
-        status: IssueStatus.closed,
-      );
+        final notifier = container.read(issuesProvider.notifier);
+        final future = notifier.updateIssue(
+          id: issueToUpdate.id,
+          status: IssueStatus.closed,
+        );
 
-      expect(
-        container
-            .read(issuesProvider)
-            .value!
-            .firstWhere((i) => i.id == issueToUpdate.id)
-            .status,
-        IssueStatus.closed,
-      );
+        expect(
+          container
+              .read(issuesProvider)
+              .value!
+              .firstWhere((i) => i.id == issueToUpdate.id)
+              .status,
+          IssueStatus.closed,
+        );
 
-      try {
-        await future;
-      } catch (_) {}
+        try {
+          await future;
+        } catch (_) {}
 
-      expect(
-        container
-            .read(issuesProvider)
-            .value!
-            .firstWhere((i) => i.id == issueToUpdate.id)
-            .status,
-        IssueStatus.open,
-      );
+        expect(
+          container
+              .read(issuesProvider)
+              .value!
+              .firstWhere((i) => i.id == issueToUpdate.id)
+              .status,
+          IssueStatus.open,
+        );
 
-      await Future.delayed(Duration.zero);
-      verify(() => mockSnackbar.showMessage(any())).called(1);
-    });
+        await Future.delayed(Duration.zero);
+        verify(() => mockSnackbar.showMessage(any())).called(1);
+      },
+    );
 
     test('getIssue: successful get updates state', () async {
       final container = createContainer(initialIssues: tIssues);
       final issueToGet = tIssues[0];
       final refreshedIssue = issueToGet.copyWith(title: 'Refreshed Title');
 
-      when(() => mockRepository.getIssue(issueToGet.id)).thenAnswer(
-        (_) async => refreshedIssue,
-      );
+      when(
+        () => mockRepository.getIssue(issueToGet.id),
+      ).thenAnswer((_) async => refreshedIssue);
 
       final notifier = container.read(issuesProvider.notifier);
       final result = await notifier.getIssue(id: issueToGet.id);
@@ -322,8 +324,9 @@ void main() {
           isExpired: false,
         ),
       );
-      when(() => mockRepository.refreshIssues())
-          .thenAnswer((_) async => tIssues);
+      when(
+        () => mockRepository.refreshIssues(),
+      ).thenAnswer((_) async => tIssues);
 
       final container = createContainer();
 
@@ -341,8 +344,9 @@ void main() {
           isExpired: true,
         ),
       );
-      when(() => mockRepository.getBootstrapIssues())
-          .thenAnswer((_) async => tIssues);
+      when(
+        () => mockRepository.getBootstrapIssues(),
+      ).thenAnswer((_) async => tIssues);
 
       final container = createContainer();
 

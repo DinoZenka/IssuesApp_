@@ -43,14 +43,14 @@ class Issue extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        title,
-        description,
-        priority,
-        status,
-        updatedAt,
-        isMock,
-      ];
+    id,
+    title,
+    description,
+    priority,
+    status,
+    updatedAt,
+    isMock,
+  ];
 
   Issue copyWith({
     String? title,

@@ -50,7 +50,9 @@ class IssuesNotifier extends _$IssuesNotifier {
   Future<void> refresh() async {
     final repo = ref.read(issueRepositoryProvider);
     final snapshot = await repo.getCachedIssues();
-    final fallbackIssues = snapshot.hasCachedIssues ? snapshot.issues : <Issue>[];
+    final fallbackIssues = snapshot.hasCachedIssues
+        ? snapshot.issues
+        : <Issue>[];
 
     if (!snapshot.hasCachedIssues || snapshot.isExpired) {
       state = AsyncData(_skeletonIssues);
