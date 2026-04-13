@@ -3,7 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:issues_app/presentation/widgets/segmented_control.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
-class DetailsSegmentedControl<T> extends StatelessWidget {
+class LabeledSegmentedControl<T> extends StatelessWidget {
   final String iconPath;
   final String label;
   final List<T> values;
@@ -11,7 +11,7 @@ class DetailsSegmentedControl<T> extends StatelessWidget {
   final Function(T) onChange;
   final Widget Function(T, bool isSelected, TextStyle textStyle) itemBuilder;
 
-  const DetailsSegmentedControl({
+  const LabeledSegmentedControl({
     super.key,
     required this.iconPath,
     required this.label,

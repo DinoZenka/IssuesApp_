@@ -4,13 +4,13 @@ import 'package:issues_app/presentation/extensions/issue_display_extenstions.dar
 import 'package:issues_app/presentation/widgets/segmented_control.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
-class IssuesStatusControl extends StatelessWidget {
+class StatusControl extends StatelessWidget {
   final List<IssueFilter> values;
   final IssueFilter selected;
   final ValueChanged<IssueFilter> onSelect;
   final double height;
 
-  const IssuesStatusControl({
+  const StatusControl({
     super.key,
     required this.values,
     required this.selected,

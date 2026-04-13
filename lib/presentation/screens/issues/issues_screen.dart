@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:issues_app/assets/app_icons.dart';
 import 'package:issues_app/domain/entities/issue.dart';
 import 'package:issues_app/presentation/providers/issues_provider.dart';
+import 'package:issues_app/presentation/screens/issues/widgets/empty_list.dart';
 import 'package:issues_app/presentation/widgets/faded_scroll.dart';
-import 'package:issues_app/presentation/widgets/issues_list_item.dart';
-import 'package:issues_app/presentation/widgets/issues_search_field.dart';
-import 'package:issues_app/presentation/widgets/issues_status_control.dart';
-import 'package:issues_app/presentation/widgets/issues_summary_header.dart';
+import 'package:issues_app/presentation/screens/issues/widgets/list_item.dart';
+import 'package:issues_app/presentation/screens/issues/widgets/search_field.dart';
+import 'package:issues_app/presentation/screens/issues/widgets/status_control.dart';
+import 'package:issues_app/presentation/screens/issues/widgets/summary_header.dart';
 import 'package:issues_app/theme/app_theme.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-class Issues extends ConsumerStatefulWidget {
-  const Issues({super.key});
+class IssuesScreen extends ConsumerStatefulWidget {
+  const IssuesScreen({super.key});
 
   @override
-  ConsumerState<Issues> createState() => _IssuesState();
+  ConsumerState<IssuesScreen> createState() => _IssuesScreenState();
 }
 
 const emptyListTitle = 'No issues yet';
@@ -27,7 +26,7 @@ const errorListTitle = 'No issues';
 const emptyListDescription =
     'You’re all set — there are no open or closed issues right now. New issues will appear here as soon as they’re created.';
 
-class _IssuesState extends ConsumerState<Issues> {
+class _IssuesScreenState extends ConsumerState<IssuesScreen> {
   final List<IssueFilter> _filterOptions = [
     const AllIssuesFilter(),
     ...IssueStatus.values.map((s) => StatusFilter(s)),
@@ -62,7 +61,7 @@ class _IssuesState extends ConsumerState<Issues> {
           bottom: false,
           child: Column(
             children: [
-              IssuesSummaryHeader(
+              SummaryHeader(
                 title: 'Issues',
                 subtitleDate: formattedDate,
                 openCount: counts.open,
@@ -85,7 +84,7 @@ class _IssuesState extends ConsumerState<Issues> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text("Issue", style: context.customStyles.h2),
-                          IssuesStatusControl(
+                          StatusControl(
                             values: _filterOptions,
                             selected: _selectedFilter,
                             onSelect: (value) {
@@ -96,7 +95,7 @@ class _IssuesState extends ConsumerState<Issues> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      IssuesSearchField(
+                      SearchField(
                         controller: _searchController,
                         isListEmpty: issues.isEmpty,
                         onChanged: (value) {
@@ -111,7 +110,7 @@ class _IssuesState extends ConsumerState<Issues> {
                             onRefresh: () =>
                                 ref.read(issuesProvider.notifier).refresh(),
                             child: issues.isEmpty
-                                ? _EmptyListWidget()
+                                ? EmptyList()
                                 : ListView.separated(
                                     itemCount: issues.length,
                                     padding: EdgeInsets.only(
@@ -123,7 +122,7 @@ class _IssuesState extends ConsumerState<Issues> {
                                     itemBuilder:
                                         (BuildContext context, int index) {
                                           final issueId = issues[index].id;
-                                          return IssuesListItem(
+                                          return ListItem(
                                             key: ValueKey(issueId),
                                             onTap: () {
                                               context.go('/details/$issueId');
@@ -153,42 +152,5 @@ class _IssuesState extends ConsumerState<Issues> {
     };
 
     ref.read(issuesStatusFilterProvider.notifier).update(status);
-  }
-}
-
-class _EmptyListWidget extends ConsumerWidget {
-  const _EmptyListWidget();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final searchQuery = ref.watch(issuesSearchQueryProvider);
-    final title = searchQuery.isEmpty ? emptyListTitle : errorListTitle;
-
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      slivers: [
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.asset(AppIcons.pageSearch, width: 48, height: 48),
-                const SizedBox(height: 12),
-                Text(title, style: context.customStyles.subtitle1),
-                const SizedBox(height: 4),
-                Text(
-                  emptyListDescription,
-                  textAlign: .center,
-                  style: context.customStyles.body2!.copyWith(
-                    color: context.customColors.gray80,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }

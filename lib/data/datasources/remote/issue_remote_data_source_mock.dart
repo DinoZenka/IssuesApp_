@@ -118,7 +118,7 @@ class IssueRemoteDataSourceMockImpl implements IssueRemoteDataSource {
   }
 
   @override
-  Future<IssueDto> putIssue(String id, Map<String, dynamic> data) async {
+  Future<IssueDto> patchIssue(String id, Map<String, dynamic> data) async {
     await Future.delayed(const Duration(milliseconds: 1500));
 
     final index = _remoteIssues.indexWhere((issue) => issue.id == id);

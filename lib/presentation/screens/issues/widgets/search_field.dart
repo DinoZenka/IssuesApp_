@@ -6,11 +6,11 @@ import 'package:issues_app/theme/app_theme.dart';
 
 final errorText = 'An error occurred while searching';
 
-class IssuesSearchField extends ConsumerWidget {
+class SearchField extends ConsumerWidget {
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
   final bool isListEmpty;
-  const IssuesSearchField({
+  const SearchField({
     super.key,
     this.controller,
     this.onChanged,

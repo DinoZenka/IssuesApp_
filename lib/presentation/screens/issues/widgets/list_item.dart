@@ -6,11 +6,11 @@ import 'package:issues_app/presentation/widgets/issue_priority_badge.dart';
 import 'package:issues_app/presentation/widgets/issue_status_badge.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
-class IssuesListItem extends StatelessWidget {
+class ListItem extends StatelessWidget {
   final Issue item;
   final VoidCallback? onTap;
 
-  const IssuesListItem({super.key, required this.item, this.onTap});
+  const ListItem({super.key, required this.item, this.onTap});
 
   @override
   Widget build(BuildContext context) {

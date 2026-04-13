@@ -3,10 +3,10 @@ import 'package:issues_app/domain/entities/issue.dart';
 import 'package:issues_app/presentation/extensions/issue_display_extenstions.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
-class IssueCountCard extends StatelessWidget {
+class CountCard extends StatelessWidget {
   final int count;
   final IssueStatus status;
-  const IssueCountCard({super.key, required this.count, required this.status});
+  const CountCard({super.key, required this.count, required this.status});
 
   Color _getDotColor(IssueStatus status, BuildContext context) {
     switch (status) {

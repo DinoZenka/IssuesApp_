@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
-class IssuesProgresslBar extends StatelessWidget {
+class ProgresslBar extends StatelessWidget {
   final int closedCount;
   final int openCount;
 
-  const IssuesProgresslBar({
+  const ProgresslBar({
     super.key,
     required this.closedCount,
     required this.openCount,

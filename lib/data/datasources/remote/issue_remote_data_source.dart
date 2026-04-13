@@ -4,7 +4,7 @@ import 'package:issues_app/data/models/issue_dto.dart';
 abstract class IssueRemoteDataSource {
   Future<List<IssueDto>> fetchIssues();
   Future<IssueDto> getIssue(String id);
-  Future<IssueDto> putIssue(String id, Map<String, dynamic> data);
+  Future<IssueDto> patchIssue(String id, Map<String, dynamic> data);
 }
 
 class IssueRemoteDataSourceImpl implements IssueRemoteDataSource {
@@ -30,9 +30,9 @@ class IssueRemoteDataSourceImpl implements IssueRemoteDataSource {
   }
 
   @override
-  Future<IssueDto> putIssue(String id, Map<String, dynamic> data) async {
+  Future<IssueDto> patchIssue(String id, Map<String, dynamic> data) async {
     await Future.delayed(const Duration(milliseconds: 1500));
-    final response = await _dio.put('$_baseUrl/issues/$id', data: data);
+    final response = await _dio.patch('$_baseUrl/issues/$id', data: data);
     return IssueDto.fromJson(response.data);
   }
 }

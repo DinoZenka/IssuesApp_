@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:issues_app/domain/entities/issue.dart';
-import 'package:issues_app/presentation/widgets/issue_count_card.dart';
-import 'package:issues_app/presentation/widgets/issues_progress_bar.dart';
+import 'package:issues_app/presentation/screens/issues/widgets/count_card.dart';
+import 'package:issues_app/presentation/screens/issues/widgets/progress_bar.dart';
 import 'package:issues_app/theme/app_theme.dart';
 
-class IssuesSummaryHeader extends StatelessWidget {
+class SummaryHeader extends StatelessWidget {
   final String title;
   final String subtitleDate;
   final int openCount;
   final int closedCount;
   final int totalCount;
 
-  const IssuesSummaryHeader({
+  const SummaryHeader({
     super.key,
     required this.title,
     required this.subtitleDate,
@@ -41,18 +41,15 @@ class IssuesSummaryHeader extends StatelessWidget {
             textAlign: TextAlign.start,
           ),
           const SizedBox(height: 16),
-          IssuesProgresslBar(closedCount: closedCount, openCount: openCount),
+          ProgresslBar(closedCount: closedCount, openCount: openCount),
           const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
-                child: IssueCountCard(
-                  count: openCount,
-                  status: IssueStatus.open,
-                ),
+                child: CountCard(count: openCount, status: IssueStatus.open),
               ),
               Expanded(
-                child: IssueCountCard(
+                child: CountCard(
                   count: closedCount,
                   status: IssueStatus.closed,
                 ),
