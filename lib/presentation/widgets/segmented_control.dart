@@ -84,23 +84,20 @@ class _SegmentedControlState<T> extends State<SegmentedControl<T>> {
   }
 
   Widget _buildIntrinsicWidth() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() {});
-    });
-
     final selectedRect = _getSelectedRect();
 
     return Stack(
       children: [
-        AnimatedPositioned(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
-          left: selectedRect.left != 0 ? selectedRect.left - 4 : 0,
-          width: selectedRect.width,
-          top: 0,
-          bottom: 0,
-          child: _SelectionPainter(),
-        ),
+        if (selectedRect != Rect.zero)
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            left: selectedRect.left != 0 ? selectedRect.left - 4 : 0,
+            width: selectedRect.width,
+            top: 0,
+            bottom: 0,
+            child: _SelectionPainter(),
+          ),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: widget.items.map(_buildItem).toList(),

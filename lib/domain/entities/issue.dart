@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:equatable/equatable.dart';
 
 enum IssuePriority {
   low,
@@ -21,7 +22,7 @@ enum IssueStatus {
   }
 }
 
-class Issue {
+class Issue extends Equatable {
   final String id;
   final String title;
   final String description;
@@ -39,6 +40,17 @@ class Issue {
     required this.updatedAt,
     this.isMock = false,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        title,
+        description,
+        priority,
+        status,
+        updatedAt,
+        isMock,
+      ];
 
   Issue copyWith({
     String? title,
